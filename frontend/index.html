@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Waste Facility Locator</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Leaflet core -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- MarkerCluster (must come AFTER leaflet.js) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+    
+
+</head>
+<body>
+    <div id="app">
+        <!-- Navigation Header -->
+        <header class="navbar">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <i class="fas fa-recycle"></i>
+                    <span>EcoWaste Locator</span>
+                </div>
+                <nav class="nav-menu">
+                    <a href="#home" class="nav-link active">Home</a>
+                    <a href="#facilities" class="nav-link">Find Facilities</a>
+                    <a href="#education" class="nav-link">Learn</a>
+                    <a href="#marketplace" class="nav-link">Marketplace</a>
+                    <a href="#credits" class="nav-link">Credits</a>
+                    <a href="#mass-collection" class="nav-link">Mass Collection</a>
+                    <a href="#pickups" class="nav-link user-only" style="display: none;">Device Pickup</a>
+                    <a href="#requests" class="nav-link user-only" style="display: none;">My Requests</a>
+                </nav>
+                <div class="nav-auth">
+                    <div id="auth-buttons" class="auth-buttons">
+                        <button id="login-btn" class="btn btn-outline">Login</button>
+                        <button id="register-btn" class="btn btn-primary">Register</button>
+                    </div>
+                    <div id="user-menu" class="user-menu" style="display: none;">
+                        <span id="user-name" class="user-name"></span>
+                        <span id="user-credits" class="user-credits">0 credits</span>
+                        <button id="logout-btn" class="btn btn-outline">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <!-- Home Section -->
+            <section id="home-section" class="section active">
+                <div class="hero">
+                    <div class="hero-content">
+                        <h1>Responsible E-Waste Recycling Made Easy</h1>
+                        <p>Find certified recycling facilities, learn about environmental impact, and earn credits for your old electronics.</p>
+                        <div class="hero-stats">
+                            <div class="stat">
+                                <span class="stat-number">50M+</span>
+                                <span class="stat-label">Tons of E-waste Generated Annually</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number">20%</span>
+                                <span class="stat-label">Properly Recycled</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number">$60B</span>
+                                <span class="stat-label">Value in Recoverable Materials</span>
+                            </div>
+                        </div>
+                        <div class="hero-actions">
+                            <button id="find-facilities-btn" class="btn btn-primary btn-large">Find Facilities</button>
+                            <button id="learn-more-btn" class="btn btn-outline btn-large">Learn More</button>
+                            <a href="admin.html" class="btn btn-secondary btn-large">
+                                <i class="fas fa-shield-alt"></i> Admin Dashboard
+                            </a>
+                        </div>
+                    </div>
+                    <div class="hero-image">
+                        <img src="\Gemini_Generated_Image_ub4aaoub4aaoub4a.png" alt="Electronic waste recycling">
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <div class="container">
+                        <h2>Quick Actions</h2>
+                        <div class="actions-grid">
+                            <div class="action-card">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <h3>Find Facilities</h3>
+                                <p>Locate certified e-waste recycling centers near you</p>
+                                <button class="btn btn-secondary" onclick="showSection('facilities')">Find Now</button>
+                            </div>
+                            <div class="action-card">
+                                <i class="fas fa-coins"></i>
+                                <h3>Check Credits</h3>
+                                <p>See how much your old devices are worth in credits</p>
+                                <button class="btn btn-secondary" onclick="showSection('credits')">Check Value</button>
+                            </div>
+                            <div class="action-card">
+                                <i class="fas fa-graduation-cap"></i>
+                                <h3>Learn Impact</h3>
+                                <p>Understand the environmental impact of e-waste</p>
+                                <button class="btn btn-secondary" onclick="showSection('education')">Learn More</button>
+                            </div>
+                            <div class="action-card">
+                                <i class="fas fa-store"></i>
+                                <h3>Marketplace</h3>
+                                <p>Buy and sell refurbished electronics</p>
+                                <button class="btn btn-secondary" onclick="showSection('marketplace')">Browse Items</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Facilities Section -->
+            <section id="facilities-section" class="section">
+                <div class="container">
+                    <div class="section-header">
+                        <h2>Find E-Waste Recycling Facilities</h2>
+                        <p>Locate certified recycling centers near you</p>
+                    </div>
+
+                    <!-- Search Controls -->
+                    <div class="search-controls">
+                        <div class="search-input">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="location-input" placeholder="Enter your location or use current location">
+                            <button id="use-location-btn" class="btn btn-secondary">
+                                <i class="fas fa-location-arrow"></i> Use My Location
+                            </button>
+                        </div>
+                        <div class="view-toggle">
+                            <button id="map-view-btn" class="btn btn-outline active">
+                                <i class="fas fa-map"></i> Map View
+                            </button>
+                            <button id="list-view-btn" class="btn btn-outline">
+                                <i class="fas fa-list"></i> List View
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Map and List Views -->
+                    <div class="facilities-content">
+                        <!-- Map View -->
+                        <div id="map-container" class="map-container">
+                            <div id="map" class="map"></div>
+                        </div>
+
+                        <!-- List View -->
+                        <div id="facilities-list" class="facilities-list" style="display: none;">
+                            <div id="facilities-loading" class="loading">Loading facilities...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Education Section -->
+            <section id="education-section" class="section">
+                <div class="container">
+                    <div class="section-header">
+                        <h2>Learn About E-Waste Impact</h2>
+                        <p>Understand the environmental and health effects of electronic waste</p>
+                    </div>
+
+                    <!-- Education Categories -->
+                    <div class="education-filters">
+                        <button class="filter-btn active" data-category="all">All Topics</button>
+                        <button class="filter-btn" data-category="Health Hazards">Health Hazards</button>
+                        <button class="filter-btn" data-category="Environmental Impact">Environmental</button>
+                        <button class="filter-btn" data-category="Resource Recovery">Recovery</button>
+                        <button class="filter-btn" data-category="Statistics">Statistics</button>
+                    </div>
+
+                    <!-- Educational Content -->
+                    <div id="education-content" class="education-grid">
+                        <div class="loading">Loading educational content...</div>
+                    </div>
+
+                    <!-- Random Fact -->
+                    <div id="random-fact" class="random-fact">
+                        <h3>Did You Know?</h3>
+                        <div id="fact-content">
+                            <div class="loading">Loading interesting fact...</div>
+                        </div>
+                        <button id="new-fact-btn" class="btn btn-outline">Get New Fact</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Credits Section -->
+            <section id="credits-section" class="section">
+                <div class="container">
+                    <div class="section-header">
+                        <h2>Device Credits Calculator</h2>
+                        <p>Find out how much your electronic devices are worth</p>
+                    </div>
+
+                    <!-- Device Search -->
+                    <div class="credits-calculator">
+                        <div class="device-search">
+                            <div class="search-input">
+                                <i class="fas fa-mobile-alt"></i>
+                                <input type="text" id="device-search" placeholder="Search for your device (e.g., iPhone 12, MacBook Pro)">
+                                <button id="search-device-btn" class="btn btn-primary">Search</button>
+                            </div>
+                        </div>
+
+                        <!-- Search Results -->
+                        <div id="device-results" class="device-results" style="display: none;"></div>
+
+                        <!-- Credit Estimation -->
+                        <div id="credit-estimate" class="credit-estimate" style="display: none;"></div>
+                    </div>
+
+                    <!-- Popular Devices -->
+                    <div class="popular-devices">
+                        <h3>Popular Devices</h3>
+                        <div id="popular-devices-grid" class="devices-grid">
+                            <div class="loading">Loading popular devices...</div>
+                        </div>
+                    </div>
+
+                    <!-- Recycling History (for authenticated users) -->
+                    <div id="recycling-history" class="recycling-history" style="display: none;">
+                        <h3>Your Recycling History</h3>
+                        <div id="history-content">
+                            <div class="loading">Loading recycling history...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Marketplace Section -->
+            <section id="marketplace-section" class="section">
+                <div class="container">
+                    <div class="section-header">
+                        <h2>Repair & Reuse Marketplace</h2>
+                        <p>Buy and sell refurbished electronics to extend their life</p>
+                    </div>
+
+                    <!-- Marketplace Controls -->
+                    <div class="marketplace-controls">
+                        <div class="search-filters">
+                            <input type="text" id="marketplace-search" placeholder="Search devices...">
+                            <select id="condition-filter">
+                                <option value="">All Conditions</option>
+                                <option value="excellent">Excellent</option>
+                                <option value="good">Good</option>
+                                <option value="fair">Fair</option>
+                                <option value="poor">Poor</option>
+                            </select>
+                            <input type="number" id="max-price-filter" placeholder="Max Price">
+                            <button id="filter-listings-btn" class="btn btn-secondary">Filter</button>
+                        </div>
+                        <button id="create-listing-btn" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Create Listing
+                        </button>
+                    </div>
+
+                    <!-- Marketplace Listings -->
+                    <div id="marketplace-listings" class="marketplace-grid">
+                        <div class="loading">Loading marketplace listings...</div>
+                    </div>
+
+                    <!-- User Listings (for authenticated users) -->
+                    <div id="user-listings" class="user-listings" style="display: none;">
+                        <h3>Your Listings</h3>
+                        <div id="user-listings-content">
+                            <div class="loading">Loading your listings...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- Mass Collection Section -->
+                <section id="mass-collection-section" class="section">
+                <div class="container">
+                    <div class="section-header">
+                    <h2>Mass Collection Service</h2>
+                    <p>Institutions and companies can request bulk e-waste collection and track status.</p>
+                    </div>
+
+                    <div class="mass-collection-layout">
+                    <!-- Form Card -->
+                    <div class="request-form-container">
+                        <h3>Request a Mass Collection</h3>
+                        <form id="mass-collection-form" class="mass-collection-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                            <label for="org-name">Organization Name</label>
+                            <input type="text" id="org-name" placeholder="e.g., ABC College" required>
+                            </div>
+                            <div class="form-group">
+                            <label for="org-type">Organization Type</label>
+                            <select id="org-type" required>
+                                <option value="">Select type</option>
+                                <option value="College">College</option>
+                                <option value="Company">Company</option>
+                                <option value="Industry">Industry</option>
+                                <option value="Government">Government</option>
+                                <option value="NGO">NGO</option>
+                            </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                            <label for="contact-person">Contact Person</label>
+                            <input type="text" id="contact-person" placeholder="Name" required>
+                            </div>
+                            <div class="form-group">
+                            <label for="contact-phone">Contact Phone</label>
+                            <input type="tel" id="contact-phone" placeholder="Phone" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                            <label for="contact-email">Contact Email</label>
+                            <input type="email" id="contact-email" placeholder="Email" required>
+                            </div>
+                            <div class="form-group">
+                            <label for="pincode">Pincode</label>
+                            <input type="text" id="pincode" placeholder="PIN code" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="mc-address">Collection Address</label>
+                            <textarea id="mc-address" rows="3" placeholder="Full address for collection" required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="estimated-items">Estimated Items / Notes</label>
+                            <textarea id="estimated-items" rows="3" placeholder="List of item types or approximate quantity" required></textarea>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                            <label for="mc-date">Preferred Date</label>
+                            <input type="date" id="mc-date">
+                            </div>
+                            <div class="form-group">
+                            <label for="mc-time">Preferred Time</label>
+                            <select id="mc-time">
+                                <option value="">Anytime</option>
+                                <option value="9:00 AM - 12:00 PM">9:00 AM - 12:00 PM</option>
+                                <option value="12:00 PM - 3:00 PM">12:00 PM - 3:00 PM</option>
+                                <option value="3:00 PM - 6:00 PM">3:00 PM - 6:00 PM</option>
+                            </select>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-full">Submit Mass Collection Request</button>
+                        </form>
+                    </div>
+
+                    <!-- Requests List -->
+                    <div class="pickups-history">
+                        <h3>Your Mass Collection Requests</h3>
+                        <div id="mass-collection-list">
+                        <div class="loading">Loading mass collection requests...</div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+                </section>
+
+
+            <!-- Device Pickup Section -->
+            <section id="pickups-section" class="section">
+                <div class="container">
+                    <div class="section-header">
+                        <h2>Device Pickup Service</h2>
+                        <p>Schedule a convenient pickup for your electronic devices at home</p>
+                    </div>
+
+                    <!-- Pickup Request Form -->
+                    <div class="pickup-form-container">
+                        <h3>Schedule Device Pickup</h3>
+                        <form id="pickup-request-form" class="pickup-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="pickup-device-select">Select Device:</label>
+                                    <select id="pickup-device-select" required>
+                                        <option value="">Loading devices...</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="pickup-date">Preferred Date:</label>
+                                    <input type="date" id="pickup-date" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="pickup-time">Preferred Time:</label>
+                                    <select id="pickup-time" required>
+                                        <option value="">Select pickup time</option>
+                                        <option value="9:00 AM - 11:00 AM">9:00 AM - 11:00 AM</option>
+                                        <option value="11:00 AM - 1:00 PM">11:00 AM - 1:00 PM</option>
+                                        <option value="1:00 PM - 3:00 PM">1:00 PM - 3:00 PM</option>
+                                        <option value="3:00 PM - 5:00 PM">3:00 PM - 5:00 PM</option>
+                                        <option value="5:00 PM - 7:00 PM">5:00 PM - 7:00 PM</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="pickup-address">Pickup Address:</label>
+                                <textarea id="pickup-address" rows="3" placeholder="Enter your complete address including apartment/unit number" required></textarea>
+                            </div>
+                            <div id="pickup-device-info" class="device-info" style="display: none;">
+                                <h4>Device Information</h4>
+                                <div id="pickup-device-details"></div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Request Pickup</button>
+                        </form>
+                    </div>
+
+                    <!-- User's Pickup Requests -->
+                    <div class="pickups-history">
+                        <h3>Your Pickup Requests</h3>
+                        <div id="user-pickups-list">
+                            <div class="loading">Loading your pickup requests...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Recycling Requests Section -->
+            <section id="requests-section" class="section">
+                <div class="container">
+                    <div class="section-header">
+                        <h2>Recycling Requests</h2>
+                        <p>Submit your electronic devices for recycling and earn credits</p>
+                    </div>
+
+                    <!-- Submit New Request -->
+                    <div class="request-form-container">
+                        <h3>Submit New Recycling Request</h3>
+                        <form id="recycling-request-form" class="recycling-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="device-select">Select Device:</label>
+                                    <select id="device-select" required>
+                                        <option value="">Loading devices...</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="year-purchase">Year of Purchase:</label>
+                                    <input type="number" id="year-purchase" min="2000" max="2024" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div id="device-info" class="device-info" style="display: none;">
+                                    <h4>Device Information</h4>
+                                    <div id="device-details"></div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit Request</button>
+                        </form>
+                    </div>
+
+                    <!-- User's Requests History -->
+                    <div class="requests-history">
+                        <h3>Your Recycling Requests</h3>
+                        <div id="user-requests-list">
+                            <div class="loading">Loading your requests...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Modals -->
+        <!-- Login Modal -->
+        <div id="login-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" data-modal="login-modal">&times;</span>
+                <h2>Login</h2>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-email">Email:</label>
+                        <input type="email" id="login-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password:</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Login</button>
+                </form>
+                <p class="modal-footer">Don't have an account? <a href="#" id="switch-to-register">Register here</a></p>
+            </div>
+        </div>
+
+        <!-- Register Modal -->
+        <div id="register-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" data-modal="register-modal">&times;</span>
+                <h2>Register</h2>
+                <form id="register-form">
+                    <div class="form-group">
+                        <label for="register-name">Full Name:</label>
+                        <input type="text" id="register-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-email">Email:</label>
+                        <input type="email" id="register-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Password:</label>
+                        <input type="password" id="register-password" required minlength="6">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Register</button>
+                </form>
+                <p class="modal-footer">Already have an account? <a href="#" id="switch-to-login">Login here</a></p>
+            </div>
+        </div>
+
+        <!-- Create Listing Modal -->
+        <div id="create-listing-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" data-modal="create-listing-modal">&times;</span>
+                <h2>Create New Listing</h2>
+                <form id="create-listing-form">
+                    <div class="form-group">
+                        <label for="listing-device-name">Device Name:</label>
+                        <input type="text" id="listing-device-name" placeholder="e.g., iPhone 12 64GB Space Gray" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="listing-condition">Condition:</label>
+                        <select id="listing-condition" required>
+                            <option value="">Select condition</option>
+                            <option value="excellent">Excellent</option>
+                            <option value="good">Good</option>
+                            <option value="fair">Fair</option>
+                            <option value="poor">Poor</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="listing-price">Price ($):</label>
+                        <input type="number" id="listing-price" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="listing-description">Description:</label>
+                        <textarea id="listing-description" rows="4" placeholder="Describe the condition and include any relevant details"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="listing-image-url">Image URL (optional):</label>
+                        <input type="url" id="listing-image-url" placeholder="https://...">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Create Listing</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- AI Chatbot -->
+        <div id="chatbot-container" class="chatbot-container">
+            <div id="chatbot-header" class="chatbot-header">
+                <div class="chatbot-title">
+                    <i class="fas fa-robot"></i>
+                    <span>E-Waste Assistant</span>
+                </div>
+                <button id="chatbot-toggle" class="chatbot-toggle">
+                    <i class="fas fa-minus"></i>
+                </button>
+            </div>
+            <div id="chatbot-messages" class="chatbot-messages">
+                <div class="message bot-message">
+                    <div class="message-content">
+                        Hi! I'm your E-Waste Assistant. Ask me about recycling, facilities, or environmental impact!
+                    </div>
+                    <div class="message-time">Now</div>
+                </div>
+            </div>
+            <div class="chatbot-input">
+                <input type="text" id="chatbot-input-field" placeholder="Ask about e-waste recycling...">
+                <button id="chatbot-send-btn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+        <button id="chatbot-open" class="chatbot-open-btn">
+            <i class="fas fa-comments"></i>
+        </button>
+
+        <!-- Notification Container -->
+        <div id="notifications" class="notifications-container"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/facilities.js"></script>
+    <script src="js/education.js"></script>
+    <script src="js/credits.js"></script>
+    <script src="js/marketplace.js"></script>
+    <script src="js/chatbot.js"></script>
+    <script src="js/requests.js"></script>
+    <script src="js/pickups.js"></script>
+    <script src="js/mass-collection.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

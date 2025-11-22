@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - E-Waste Facility Locator</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div id="admin-app">
+        <!-- Admin Login Section -->
+        <section id="admin-login-section" class="login-section">
+            <div class="login-container">
+                <div class="login-card">
+                    <div class="login-header">
+                        <i class="fas fa-shield-alt"></i>
+                        <h1>Admin Dashboard</h1>
+                        <p>E-Waste Facility Locator</p>
+                    </div>
+                    <form id="admin-login-form" class="login-form">
+                        <div class="form-group">
+                            <label for="admin-email">Email:</label>
+                            <input type="email" id="admin-email" required placeholder="admin@ewaste.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="admin-password">Password:</label>
+                            <input type="password" id="admin-password" required placeholder="Enter admin password">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">
+                            <i class="fas fa-sign-in-alt"></i> Login to Dashboard
+                        </button>
+                    </form>
+                    <div class="login-footer">
+                        <a href="index.html">← Back to Main Site</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Admin Dashboard Section -->
+        <section id="admin-dashboard-section" class="dashboard-section" style="display: none;">
+            <!-- Dashboard Header -->
+            <header class="dashboard-header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <i class="fas fa-recycle"></i>
+                        <h1>Admin Dashboard</h1>
+                    </div>
+                    <div class="header-right">
+                        <span id="admin-name" class="admin-name">Admin User</span>
+                        <button id="admin-logout-btn" class="btn btn-outline">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Navigation -->
+            <nav class="dashboard-nav">
+                <div class="nav-container">
+                    <button class="nav-tab active" data-tab="overview">
+                        <i class="fas fa-chart-dashboard"></i> Overview
+                    </button>
+                    <button class="nav-tab" data-tab="facilities">
+                        <i class="fas fa-map-marker-alt"></i> Facilities
+                    </button>
+                    <button class="nav-tab" data-tab="requests">
+                        <i class="fas fa-clipboard-list"></i> Recycling Requests
+                    </button>
+                    <button class="nav-tab" data-tab="users">
+                        <i class="fas fa-users"></i> Users
+                    </button>
+                    <button class="nav-tab" data-tab="mass-collection">
+                        <i class="fas fa-industry"></i> Mass Collection
+                    </button>
+                    <button class="nav-tab" data-tab="pickups">
+                        <i class="fas fa-truck"></i> Pickup Requests
+                    </button>
+                    <button class="nav-tab" data-tab="marketplace">
+                        <i class="fas fa-store"></i> Marketplace
+                    </button>
+                </div>
+            </nav>
+
+            <!-- Dashboard Content -->
+            <main class="dashboard-main">
+                <!-- Overview Tab -->
+                <div id="overview-tab" class="tab-content active">
+                    <div class="overview-stats">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="total-users">0</h3>
+                                <p>Total Users</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="total-facilities">0</h3>
+                                <p>Facilities</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="pending-requests">0</h3>
+                                <p>Pending Requests</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-store"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="active-listings">0</h3>
+                                <p>Active Listings</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="overview-charts">
+                        <div class="chart-card">
+                            <h3>Recent Activity</h3>
+                            <div id="recent-activity" class="activity-list">
+                                <div class="loading">Loading recent activity...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Facilities Tab -->
+                <div id="facilities-tab" class="tab-content">
+                    <div class="tab-header">
+                        <h2>Manage Facilities</h2>
+                        <button id="add-facility-btn" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add New Facility
+                        </button>
+                    </div>
+                    <div id="facilities-list" class="data-table">
+                        <div class="loading">Loading facilities...</div>
+                    </div>
+                </div>
+
+                <!-- Device Requests Tab -->
+                <div id="requests-tab" class="tab-content">
+                    <div class="tab-header">
+                        <h2>Recycling Requests</h2>
+                        <div class="filter-controls">
+                            <select id="request-status-filter">
+                                <option value="all">All Requests</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                            <button id="refresh-requests-btn" class="btn btn-outline">
+                                <i class="fas fa-refresh"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div id="requests-list" class="data-table">
+                        <div class="loading">Loading requests...</div>
+                    </div>
+                </div>
+
+                <!-- Users Tab -->
+                <div id="users-tab" class="tab-content">
+                    <div class="tab-header">
+                        <h2>Registered Users</h2>
+                        <div class="search-controls">
+                            <input type="text" id="user-search" placeholder="Search users...">
+                            <button id="search-users-btn" class="btn btn-outline">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                    </div>
+                    <div id="users-list" class="data-table">
+                        <div class="loading">Loading users...</div>
+                    </div>
+                </div>
+                <!-- Mass Collection Tab -->
+                <div id="mass-collection-tab" class="tab-content">
+                    <div class="tab-header">
+                    <h2>Mass Collection Requests</h2>
+                    <div class="filter-controls">
+                    <select id="collection-status-filter">
+                        <option value="all">All Statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="scheduled">Scheduled</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+
+                    <select id="collection-org-type-filter">
+                        <option value="all">All Org Types</option>
+                        <option value="College">College</option>
+                        <option value="Company">Company</option>
+                        <option value="Industry">Industry</option>
+                        <option value="Government">Government</option>
+                        <option value="NGO">NGO</option>
+                    </select>
+
+                    <input type="date" id="collection-date-filter" />
+                    <button id="refresh-collections-btn" class="btn btn-outline"><i class="fas fa-refresh"></i> Refresh</button>
+                    </div>
+                </div>
+
+                <div id="mass-collections-list" class="data-table">
+                    <div class="loading">Loading mass collection requests...</div>
+                </div>
+
+                <!-- Update Collection Modal -->
+                <div id="update-collection-modal" class="modal">
+                    <div class="modal-content">
+                    <span class="close" data-modal="update-collection-modal">&times;</span>
+                    <h2>Update Mass Collection Status</h2>
+                    <form id="update-collection-form">
+                        <div class="form-group">
+                        <label for="collection-status-select">Status</label>
+                        <select id="collection-status-select" required>
+                            <option value="pending">Pending</option>
+                            <option value="scheduled">Scheduled</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                        </div>
+                        <div class="form-group">
+                        <label for="collection-tracking-note">Tracking Note</label>
+                        <textarea id="collection-tracking-note" rows="3" placeholder="Add tracking note (optional)"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Status</button>
+                    </form>
+                    </div>
+                </div>
+                </div>
+
+
+                <!-- Pickup Requests Tab -->
+                <div id="pickups-tab" class="tab-content">
+                    <div class="tab-header">
+                        <h2>Pickup Requests Management</h2>
+                        <div class="filter-controls">
+                            <select id="pickup-status-filter">
+                                <option value="all">All Requests</option>
+                                <option value="pending">Pending</option>
+                                <option value="scheduled">Scheduled</option>
+                                <option value="picked_up">Picked Up</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                            <input type="date" id="pickup-date-filter" placeholder="Filter by date">
+                            <button id="refresh-pickups-btn" class="btn btn-outline">
+                                <i class="fas fa-refresh"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div id="pickups-list" class="data-table">
+                        <div class="loading">Loading pickup requests...</div>
+                    </div>
+                </div>
+
+                <!-- Marketplace Tab -->
+                <div id="marketplace-tab" class="tab-content">
+                    <div class="tab-header">
+                        <h2>Marketplace Listings</h2>
+                        <div class="filter-controls">
+                            <select id="listing-status-filter">
+                                <option value="all">All Listings</option>
+                                <option value="active">Active</option>
+                                <option value="sold">Sold</option>
+                                <option value="removed">Removed</option>
+                            </select>
+                            <button id="refresh-listings-btn" class="btn btn-outline">
+                                <i class="fas fa-refresh"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div id="marketplace-list" class="data-table">
+                        <div class="loading">Loading marketplace listings...</div>
+                    </div>
+                </div>
+            </main>
+        </section>
+
+        <!-- Add Facility Modal -->
+        <div id="add-facility-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" data-modal="add-facility-modal">&times;</span>
+                <h2>Add New Facility</h2>
+                <form id="add-facility-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="facility-name">Facility Name:</label>
+                            <input type="text" id="facility-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="facility-contact">Contact:</label>
+                            <input type="text" id="facility-contact">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="facility-address">Address:</label>
+                        <textarea id="facility-address" rows="2" required></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="facility-latitude">Latitude:</label>
+                            <input type="number" id="facility-latitude" step="any" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="facility-longitude">Longitude:</label>
+                            <input type="number" id="facility-longitude" step="any" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="facility-hours">Operating Hours:</label>
+                        <textarea id="facility-hours" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="facility-website">Website:</label>
+                        <input type="url" id="facility-website">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Add Facility</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Update Pickup Status Modal -->
+        <div id="update-pickup-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" data-modal="update-pickup-modal">&times;</span>
+                <h2>Update Pickup Status</h2>
+                <form id="update-pickup-form">
+                    <div class="form-group">
+                        <label for="pickup-status-select">Status:</label>
+                        <select id="pickup-status-select" required>
+                            <option value="pending">Pending</option>
+                            <option value="scheduled">Scheduled</option>
+                            <option value="picked_up">Picked Up</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="pickup-tracking-note">Tracking Note:</label>
+                        <textarea id="pickup-tracking-note" rows="3" placeholder="Add a note about this pickup status update... (optional - default message will be used if empty)"></textarea>
+                        <small class="form-help">Leave empty to use default status message, or add custom tracking information.</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Update Status</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Notification Container -->
+        <div id="admin-notifications" class="notifications-container"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/admin-api.js"></script>
+    <script src="js/admin-mass-collection.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
