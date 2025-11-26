@@ -80,12 +80,7 @@ class MarketplaceModule {
 
         const listingsHTML = listingsToShow.map(listing => `
             <div class="listing-card" data-listing-id="${listing.listing_id}">
-                <div class="listing-image">
-                    ${listing.image_url ? 
-                        `<img src="${listing.image_url}" alt="${listing.device_name}" onerror="this.parentNode.innerHTML='<i class=\\'fas fa-mobile-alt\\'></i>'">` :
-                        '<i class="fas fa-mobile-alt"></i>'
-                    }
-                </div>
+                
                 <div class="listing-content">
                     <h3>${listing.device_name}</h3>
                     <div class="listing-price">$${listing.price}</div>

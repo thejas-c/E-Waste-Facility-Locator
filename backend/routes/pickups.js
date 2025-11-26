@@ -3,33 +3,23 @@ const db = require('../config/database');
 const { verifyToken } = require('../middleware/auth');
 
 const router = express.Router();
+const aiClient = require('../config/aiClient');
 
 // Create new pickup request (requires authentication)
 router.post('/', verifyToken, async (req, res) => {
     try {
-        const { device_id, address, scheduled_date, scheduled_time } = req.body;
+        const { device_id, address } = req.body;
         const user_id = req.user.user_id;
 
-        if (!device_id || !address || !scheduled_date || !scheduled_time) {
-            return res.status(400).json({ 
-                error: 'Device ID, address, scheduled date, and time are required' 
-            });
-        }
-
-        // Validate scheduled date is not in the past
-        const scheduledDate = new Date(scheduled_date);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        if (scheduledDate < today) {
-            return res.status(400).json({ 
-                error: 'Scheduled date cannot be in the past' 
+        if (!device_id || !address) {
+            return res.status(400).json({
+                error: 'Device ID and address are required'
             });
         }
 
         // Verify device exists
         const [devices] = await db.execute(
-            'SELECT device_id, model_name, credits_value FROM devices WHERE device_id = ?',
+            'SELECT device_id, model_name FROM devices WHERE device_id = ?',
             [device_id]
         );
 
@@ -37,29 +27,40 @@ router.post('/', verifyToken, async (req, res) => {
             return res.status(404).json({ error: 'Device not found' });
         }
 
-        // Create pickup request
-        const [result] = await db.execute(`
-            INSERT INTO pickup_requests (user_id, device_id, address, scheduled_date, scheduled_time, tracking_note)
-            VALUES (?, ?, ?, ?, ?, ?)
-        `, [user_id, device_id, address, scheduled_date, scheduled_time, 'Pickup request received, awaiting processing']);
+        // Detect district with AI
+        const district = await extractDistrictAI(address, aiClient);
 
-        console.log(`📦 New pickup request created: ID ${result.insertId} for user ${req.user.name}`);
+        // Calculate auto pickup date/time
+        const schedule = await calculatePickupSchedule(district, db);
+
+        // Insert into DB
+        const [result] = await db.execute(`
+            INSERT INTO pickup_requests 
+            (user_id, device_id, address, scheduled_date, scheduled_time, status, tracking_note)
+            VALUES (?, ?, ?, ?, ?, 'pending', ?)
+        `, [
+            user_id,
+            device_id,
+            address,
+            schedule.pickup_date,
+            schedule.pickup_time,
+            district
+        ]);
+
+        console.log(`📦 Pickup ${result.insertId} created — ${district}`);
 
         res.status(201).json({
             success: true,
-            message: 'Pickup request submitted successfully',
-            pickup: {
-                pickup_id: result.insertId,
-                device_name: devices[0].model_name,
-                address: address,
-                scheduled_date: scheduled_date,
-                scheduled_time: scheduled_time,
-                status: 'pending'
-            }
+            message: "Pickup request scheduled successfully",
+            estimated_pickup: schedule
         });
-    } catch (error) {
-        console.error('Create pickup request error:', error);
-        res.status(500).json({ error: 'Failed to create pickup request', message: error.message });
+
+    } catch (err) {
+        console.error("Pickup creation error:", err);
+        res.status(500).json({
+            error: "Failed to schedule pickup",
+            message: err.message
+        });
     }
 });
 
@@ -185,5 +186,94 @@ router.put('/:id/cancel', verifyToken, async (req, res) => {
         res.status(500).json({ error: 'Failed to cancel pickup request', message: error.message });
     }
 });
+
+async function extractDistrictAI(address, aiClient) {
+    const prompt = `
+Extract ONLY the city or district name from this address.
+Return ONLY JSON exactly like this:
+{"district": "<name>"}
+
+Address:
+${address}
+`;
+
+    try {
+        const response = await aiClient.models.generateContent({
+            model: process.env.GEMINI_TEXT_MODEL || "gemini-1.5-flash",
+            contents: [{ parts: [{ text: prompt }] }]
+        });
+
+        const text = response?.response?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+        const parsed = JSON.parse(text);
+
+        if (parsed.district && parsed.district.trim() !== "") {
+            return parsed.district.trim();
+        }
+
+    } catch (err) {
+        console.log("AI district extraction failed:", err);
+    }
+
+    // fallback — pick last part
+    const parts = address.split(",");
+    const fallback = parts[parts.length - 2] || parts[parts.length - 1];
+
+    return fallback.trim();
+}
+
+async function calculatePickupSchedule(district, db) {
+    const now = new Date();
+    const hour = now.getHours();
+    const minute = now.getMinutes();
+
+    const before3pm = hour < 15;
+
+    let pickupDate = new Date();
+
+    // If after 3 PM → schedule tomorrow
+    if (!before3pm) {
+        pickupDate.setDate(pickupDate.getDate() + 1);
+    }
+
+    while (true) {
+        const y = pickupDate.getFullYear();
+        const m = String(pickupDate.getMonth() + 1).padStart(2, '0');
+        const d = String(pickupDate.getDate()).padStart(2, '0');
+
+        const dateString = `${y}-${m}-${d}`;
+        const todayString = new Date().toISOString().slice(0, 10);
+
+        // Find pickups already assigned for this district on this date
+        const [rows] = await db.execute(
+            "SELECT COUNT(*) AS count FROM pickup_requests WHERE tracking_note = ? AND scheduled_date = ?",
+            [district, dateString]
+        );
+
+        const already = rows[0].count;
+
+        // If day has slot
+        if (already < 5) {
+            let estimatedHour = 9 + already;
+            let estimatedMinute = "00";
+
+            // If scheduling for today AND time already passed
+            if (dateString === todayString && before3pm) {
+                if (estimatedHour < hour || (estimatedHour === hour && estimatedMinute <= minute)) {
+                    estimatedHour = hour + 1; // push forward 1 hour
+                    estimatedMinute = String(minute).padStart(2, '0');
+                }
+            }
+
+            return {
+                pickup_date: dateString,
+                pickup_time: `${estimatedHour}:${estimatedMinute}`,
+                position_in_queue: already + 1
+            };
+        }
+
+        // Day full → next day
+        pickupDate.setDate(pickupDate.getDate() + 1);
+    }
+}
 
 module.exports = router;

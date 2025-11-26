@@ -53,6 +53,7 @@ app.use('/api/history', require('./routes/history'));
 app.use('/api/requests', require('./routes/requests'));
 app.use('/api/pickups', require('./routes/pickups'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/ai', require('./routes/ai'));
 
 const massCollectionRouter = require('./routes/mass-collection');
 app.use('/api/mass-collection', massCollectionRouter);

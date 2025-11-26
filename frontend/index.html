@@ -32,6 +32,7 @@
                     <a href="#education" class="nav-link">Learn</a>
                     <a href="#marketplace" class="nav-link">Marketplace</a>
                     <a href="#credits" class="nav-link">Credits</a>
+                    <a href="#ai-auto-credits" class="nav-link">AI Auto Credits</a>
                     <a href="#mass-collection" class="nav-link">Mass Collection</a>
                     <a href="#pickups" class="nav-link user-only" style="display: none;">Device Pickup</a>
                     <a href="#requests" class="nav-link user-only" style="display: none;">My Requests</a>
@@ -236,7 +237,37 @@
                     </div>
                 </div>
             </section>
-
+            <!-- AI Auto Credit System Section -->
+            <section id="ai-auto-credits-section" class="section">
+                <div class="container">
+                    <div class="section-header">
+                        <h2>AI Auto Credit System</h2>
+                        <p>Upload a photo of your device and let AI identify it and estimate your recycling credits.</p>
+                    </div>
+                    <div class="credits-calculator">
+                        <form id="ai-credit-form" class="ai-credit-form">
+                            <div class="form-group">
+                                <label for="device-image">Device Image</label>
+                                <input type="file" id="device-image" accept="image/*" required>
+                                <p class="ai-help-text">Tip: Use a clear photo showing the front or back of the device with any labels visible.</p>
+                            </div>
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary btn-full">Analyze Device</button>
+                            </div>
+                            <p id="ai-loading-text" class="ai-loading-text" style="display: none;">
+                                Analyzing your device with AI... this may take a few seconds.
+                            </p>
+                        </form>
+                        <div id="ai-image-preview" class="ai-image-preview" style="display: none;">
+                            <h3>Image Preview</h3>
+                            <img id="ai-image-preview-img" alt="Device preview">
+                        </div>
+                        <div id="ai-device-details" class="ai-device-details" style="display: none;">
+                        </div>
+                        <div id="ai-credit-result" class="ai-credit-result" style="display: none;"></div>
+                    </div>
+                </div>
+            </section>
             <!-- Marketplace Section -->
             <section id="marketplace-section" class="section">
                 <div class="container">
@@ -392,22 +423,11 @@
                                         <option value="">Loading devices...</option>
                                     </select>
                                 </div>
-                                <div class="form-group">
-                                    <label for="pickup-date">Preferred Date:</label>
-                                    <input type="date" id="pickup-date" required>
-                                </div>
+                                
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label for="pickup-time">Preferred Time:</label>
-                                    <select id="pickup-time" required>
-                                        <option value="">Select pickup time</option>
-                                        <option value="9:00 AM - 11:00 AM">9:00 AM - 11:00 AM</option>
-                                        <option value="11:00 AM - 1:00 PM">11:00 AM - 1:00 PM</option>
-                                        <option value="1:00 PM - 3:00 PM">1:00 PM - 3:00 PM</option>
-                                        <option value="3:00 PM - 5:00 PM">3:00 PM - 5:00 PM</option>
-                                        <option value="5:00 PM - 7:00 PM">5:00 PM - 7:00 PM</option>
-                                    </select>
+                                    
                                 </div>
                             </div>
                             <div class="form-group">
@@ -420,6 +440,19 @@
                             </div>
                             <button type="submit" class="btn btn-primary">Request Pickup</button>
                         </form>
+                        <div id="pickup-estimated-box" class="card" style="
+                            display:none;
+                            background:#e8fff1;
+                            border-left:5px solid #28a745;
+                            padding:15px;
+                            margin-top:15px;
+                            border-radius:8px;
+                            ">
+                            <h4>📅 Estimated Pickup Scheduled</h4>
+                            <p><strong>Date:</strong> <span id="est-pickup-date"></span></p>
+                            <p><strong>Time:</strong> <span id="est-pickup-time"></span></p>
+                            <p><strong>Queue Position:</strong> <span id="est-pickup-pos"></span></p>
+                        </div>
                     </div>
 
                     <!-- User's Pickup Requests -->
@@ -601,6 +634,7 @@
     <script src="js/facilities.js"></script>
     <script src="js/education.js"></script>
     <script src="js/credits.js"></script>
+    <script src="js/ai-auto-credits.js"></script>
     <script src="js/marketplace.js"></script>
     <script src="js/chatbot.js"></script>
     <script src="js/requests.js"></script>

@@ -31,7 +31,11 @@ class App {
         if (window.CreditsModule) {
             window.credits = new CreditsModule();
         }
-        
+
+        if (window.AIAutoCreditsModule) {
+            window.aiAutoCredits = new AIAutoCreditsModule();
+        }
+
         if (window.MarketplaceModule) {
             window.marketplace = new MarketplaceModule();
         }
@@ -141,6 +145,11 @@ class App {
                         if (this.currentUser) {
                             await window.credits.loadRecyclingHistory();
                         }
+                    }
+                    break;
+                case 'ai-auto-credits':
+                    if (window.aiAutoCredits && typeof window.aiAutoCredits.onSectionShown === 'function') {
+                        window.aiAutoCredits.onSectionShown();
                     }
                     break;
                 case 'marketplace':

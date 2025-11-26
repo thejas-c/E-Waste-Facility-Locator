@@ -215,15 +215,13 @@ class PickupsModule {
         // Device selection change
         document.getElementById('pickup-device-select')?.addEventListener('change', (e) => {
             this.handleDeviceSelection(e.target.value);
-        });
 
-        // Set minimum date to today
-        const dateInput = document.getElementById('pickup-date');
-        if (dateInput) {
-            const today = new Date().toISOString().split('T')[0];
-            dateInput.min = today;
-        }
+            // Hide estimation box when user changes device
+            const box = document.getElementById("pickup-estimated-box");
+            if (box) box.style.display = "none";
+        });
     }
+
 
     async loadDevices() {
         try {
@@ -243,12 +241,15 @@ class PickupsModule {
         const select = document.getElementById('pickup-device-select');
         if (!select || !this.devices) return;
 
-        const optionsHTML = this.devices.map(device => 
-            `<option value="${device.device_id}">${device.model_name} (${device.category}) - ${device.credits_value} credits</option>`
+        const optionsHTML = this.devices.map(device =>
+            `<option value="${device.device_id}">
+                ${device.model_name} (${device.category}) - ${device.credits_value} credits
+            </option>`
         ).join('');
 
         select.innerHTML = '<option value="">Select a device for pickup</option>' + optionsHTML;
     }
+
 
     handleDeviceSelection(deviceId) {
         if (!deviceId) {
@@ -265,7 +266,7 @@ class PickupsModule {
     displayDeviceInfo(device) {
         const container = document.getElementById('pickup-device-info');
         const details = document.getElementById('pickup-device-details');
-        
+
         if (!container || !details) return;
 
         details.innerHTML = `
@@ -304,14 +305,10 @@ class PickupsModule {
 
         const deviceId = document.getElementById('pickup-device-select').value;
         const address = document.getElementById('pickup-address').value;
-        const date = document.getElementById('pickup-date').value;
-        const time = document.getElementById('pickup-time').value;
         const submitBtn = e.target.querySelector('button[type="submit"]');
 
-        if (!deviceId || !address || !date || !time) {
-            if (window.app) {
-                window.app.showNotification('Please fill in all required fields', 'error');
-            }
+        if (!deviceId || !address) {
+            window.app?.showNotification('Please provide all required details', 'error');
             return;
         }
 
@@ -321,30 +318,43 @@ class PickupsModule {
 
             const response = await window.api.createPickupRequest({
                 device_id: parseInt(deviceId),
-                address: address,
-                scheduled_date: date,
-                scheduled_time: time
+                address: address
             });
 
-            if (window.app) {
-                window.app.showNotification('Pickup request submitted successfully! We will contact you soon to confirm the schedule.');
+            window.app?.showNotification('Pickup request submitted successfully!');
+
+            // === Show estimated pickup details from backend ===
+            if (response.estimated_pickup) {
+                const box = document.getElementById("pickup-estimated-box");
+                if (box) {
+                    box.style.display = "block";
+                    document.getElementById("est-pickup-date").innerText =
+                        response.estimated_pickup.pickup_date;
+
+                    document.getElementById("est-pickup-time").innerText =
+                        response.estimated_pickup.pickup_time;
+
+                    document.getElementById("est-pickup-pos").innerText =
+                        response.estimated_pickup.position_in_queue;
+                }
             }
 
-            // Reset form and reload pickups
+            // Reset form
             e.target.reset();
             document.getElementById('pickup-device-info').style.display = 'none';
+
+            // Reload user's pickup list
             this.loadUserPickups();
 
         } catch (error) {
-            console.error('Error submitting pickup request:', error);
-            if (window.app) {
-                window.app.showNotification(error.message || 'Failed to submit pickup request', 'error');
-            }
+            console.error('Pickup submit error:', error);
+            window.app?.showNotification(error.message || 'Failed to submit pickup request', 'error');
         } finally {
             submitBtn.disabled = false;
             submitBtn.textContent = 'Request Pickup';
         }
     }
+
 
     async loadUserPickups() {
         if (!window.auth.isAuthenticated()) {
@@ -483,24 +493,6 @@ class PickupsModule {
         }).format(new Date(dateString));
     }
 
-    // Generate time slots for pickup
-    generateTimeSlots() {
-        const timeSlots = [
-            '9:00 AM - 11:00 AM',
-            '11:00 AM - 1:00 PM',
-            '1:00 PM - 3:00 PM',
-            '3:00 PM - 5:00 PM',
-            '5:00 PM - 7:00 PM'
-        ];
-
-        const select = document.getElementById('pickup-time');
-        if (select) {
-            const optionsHTML = timeSlots.map(slot => 
-                `<option value="${slot}">${slot}</option>`
-            ).join('');
-            select.innerHTML = '<option value="">Select pickup time</option>' + optionsHTML;
-        }
-    }
 
     // Cleanup method
     destroy() {
