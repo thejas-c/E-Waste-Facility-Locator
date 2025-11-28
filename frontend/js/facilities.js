@@ -359,7 +359,7 @@ class FacilitiesModule {
         // Add user location marker (reuse an existing marker if you want)
         L.marker([this.userLocation.lat, this.userLocation.lng], {
             icon: L.icon({
-                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+                iconUrl: 'marker-icon-red.png',
                 shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
                 iconSize: [25, 41],
                 iconAnchor: [12, 41],

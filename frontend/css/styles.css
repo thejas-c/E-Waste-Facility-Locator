@@ -104,49 +104,61 @@ h3 { font-size: 1.5rem; }
     width: 100%;
 }
 
-/* Navigation */
+/* =========================
+   NAVBAR — MODERN DESIGN
+========================= */
 .navbar {
-    background-color: white;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
+    backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.75);
+    box-shadow: 0 3px 18px rgba(0, 0, 0, 0.08);
     z-index: 1000;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
 .nav-container {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0.7rem 2rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1rem 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
 }
 
+/* Logo */
 .nav-logo {
     display: flex;
     align-items: center;
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     font-weight: 700;
     color: var(--primary-color);
+    letter-spacing: -0.5px;
+    cursor: pointer;
 }
 
 .nav-logo i {
-    margin-right: 0.5rem;
-    font-size: 1.8rem;
+    margin-right: 0.4rem;
+    font-size: 1.9rem;
+    color: var(--primary-color);
 }
 
+/* Menu */
 .nav-menu {
     display: flex;
     gap: 2rem;
+    align-items: center;
 }
 
 .nav-link {
-    color: var(--neutral-600);
+    font-size: 0.96rem;
     text-decoration: none;
+    color: var(--neutral-700);
     font-weight: 500;
-    transition: color 0.2s ease;
+    position: relative;
+    transition: color .25s;
 }
 
 .nav-link:hover,
@@ -154,22 +166,106 @@ h3 { font-size: 1.5rem; }
     color: var(--primary-color);
 }
 
-.nav-auth {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+/* Underline animation */
+.nav-link::after {
+    content: "";
+    position: absolute;
+    bottom: -6px;
+    left: 0;
+    width: 0%;
+    height: 2px;
+    background: var(--primary-color);
+    transition: width .25s ease-in-out;
+    border-radius: 2px;
+}
+.nav-link:hover::after,
+.nav-link.active::after {
+    width: 100%;
 }
 
+/* Auth Buttons */
+.nav-auth {
+    display: flex;
+    gap: 0.8rem;
+}
+
+.nav-btn {
+    background: var(--primary-color);
+    color: #fff;
+    padding: 0.45rem 1.1rem;
+    border-radius: 20px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background .25s, transform .15s;
+}
+
+.nav-btn:hover {
+    background: var(--primary-color-dark);
+    transform: translateY(-1px);
+}
+
+.nav-btn-outline {
+    border: 2px solid var(--primary-color);
+    background: transparent;
+    color: var(--primary-color);
+}
+
+.nav-btn-outline:hover {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+/* =========================
+   MOBILE RESPONSIVE
+========================= */
+@media (max-width: 768px) {
+    .nav-menu {
+        display: none;
+    }
+    .nav-auth {
+        display: none;
+    }
+    .navbar {
+        padding: 0.5rem 1rem;
+    }
+}
+
+
+/* Simple inline user menu in navbar */
 .user-menu {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+    margin-left: 1.2rem;
 }
 
+/* Name text */
 .user-name {
     font-weight: 600;
-    color: var(--neutral-700);
+    color: #222;
 }
+
+/* Credits badge */
+.user-credits {
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    background: rgba(0, 168, 107, 0.12); /* light green */
+    color: #008c59;                        /* darker green */
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+/* Logout button to look lighter in navbar */
+#logout-btn.btn.btn-outline {
+    padding: 0.3rem 0.8rem;
+    font-size: 0.8rem;
+    border-radius: 999px;
+    border-width: 1px;
+}
+
 
 .user-credits {
     background-color: var(--accent-color);
@@ -1759,4 +1855,33 @@ main {
     background: #e8ffe8;
     border-left: 5px solid #28a745;
     border-radius: 8px;
+}
+
+/* Floating chatbot button */
+#chatbot-open.chatbot-open-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-color, #007bff);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  z-index: 9999;  /* above almost everything */
+}
+
+/* make sure the icon itself doesn't eat clicks */
+#chatbot-open.chatbot-open-btn i {
+  pointer-events: none;
+  font-size: 22px;
+}
+
+/* hide button when JS adds .hidden */
+#chatbot-open.chatbot-open-btn.hidden {
+  display: none;
 }

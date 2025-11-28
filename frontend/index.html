@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-Waste Facility Locator</title>
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
     <!-- Leaflet core -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -38,11 +40,11 @@
                     <a href="#requests" class="nav-link user-only" style="display: none;">My Requests</a>
                 </nav>
                 <div class="nav-auth">
-                    <div id="auth-buttons" class="auth-buttons">
+                    <div id="auth-buttons" class="auth-buttons flex">
                         <button id="login-btn" class="btn btn-outline">Login</button>
                         <button id="register-btn" class="btn btn-primary">Register</button>
                     </div>
-                    <div id="user-menu" class="user-menu" style="display: none;">
+                    <div id="user-menu" class="user-menu " style="display: none;">
                         <span id="user-name" class="user-name"></span>
                         <span id="user-credits" class="user-credits">0 credits</span>
                         <button id="logout-btn" class="btn btn-outline">Logout</button>
@@ -249,7 +251,7 @@
                             <div class="form-group">
                                 <label for="device-image">Device Image</label>
                                 <input type="file" id="device-image" accept="image/*" required>
-                                <p class="ai-help-text">Tip: Use a clear photo showing the front or back of the device with any labels visible.</p>
+                                <p class="ai-help-text">Tip: Use a clear photo showing the FRONT/BACK of the device with any labels visible or the ABOUT section of the device</p>
                             </div>
                             <div class="form-group">
                                 <button type="submit" class="btn btn-primary btn-full">Analyze Device</button>
@@ -619,7 +621,7 @@
             </div>
         </div>
         <button id="chatbot-open" class="chatbot-open-btn">
-            <i class="fas fa-comments"></i>
+            <i class="fa-solid fa-comments"></i>
         </button>
 
         <!-- Notification Container -->
