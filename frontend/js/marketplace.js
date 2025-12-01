@@ -89,7 +89,9 @@ class MarketplaceModule {
                     </div>
                     ${listing.description ? `<div class="listing-description">${this.truncateText(listing.description, 100)}</div>` : ''}
                     <div class="listing-seller">
-                        <i class="fas fa-user"></i> ${listing.seller_name}
+                        <i class="fas fa-user"></i> ${listing.seller_name || 'Unknown Seller'}
+<br>
+<small>${listing.seller_email || ''}</small>
                         <span class="listing-date">${this.formatListingDate(listing.created_at)}</span>
                     </div>
                     <div class="listing-actions">
@@ -248,19 +250,42 @@ class MarketplaceModule {
         }
     }
 
-    contactSeller(listingId) {
-        const listing = this.listings.find(l => l.listing_id === listingId);
-        if (!listing) return;
+   contactSeller(listingId) {
+    const listing = this.listings.find(l => l.listing_id === listingId);
+    if (!listing) return;
 
-        // In a real app, this would open a messaging system
-        // For now, we'll show a simple notification
-        if (window.app) {
-            window.app.showNotification(
-                `Contact ${listing.seller_name} about "${listing.device_name}". In a real app, this would open a messaging system.`,
-                'info'
-            );
-        }
+    const email = listing.seller_email || listing.sellerEmail;
+    if (!email) {
+        window.app?.showNotification('Seller email not available.', 'error');
+        return;
     }
+
+    // Copy email to clipboard (if supported)
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(email).catch(err => console.warn('Clipboard error:', err));
+    }
+
+    // Open email compose window
+    const subject = encodeURIComponent(`Inquiry about ${listing.device_name}`);
+    const body = encodeURIComponent(`Hello ${listing.seller_name},\n\nI'm interested in your listing for "${listing.device_name}".\nCould you provide more details?\n\nThanks!`);
+    const mailtoLink = `mailto:${email}?subject=${subject}&body=${body}`;
+
+    const opened = window.open(mailtoLink, '_blank');  // preferred browser
+
+    if (!opened) {
+        // Fallback
+        window.location.href = mailtoLink;
+    }
+
+    window.app?.showNotification(
+        `Opening mail app... mail copied: ${email}`,
+        'info'
+    );
+}
+
+
+
+
 
     reportListing(listingId) {
         if (window.app) {

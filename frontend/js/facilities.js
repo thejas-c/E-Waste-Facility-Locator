@@ -194,7 +194,6 @@ class FacilitiesModule {
                 <div class="facility-card" data-facility-id="${facility.facility_id}">
                     <div class="facility-header">
                         <h3>${facility.name}</h3>
-                        ${distance ? `<span class="distance">${distance} miles</span>` : ''}
                     </div>
                     <div class="address">${facility.address}</div>
                     ${facility.contact ? `<div class="contact">📞 ${facility.contact}</div>` : ''}

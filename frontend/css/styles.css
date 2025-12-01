@@ -1885,3 +1885,28 @@ main {
 #chatbot-open.chatbot-open-btn.hidden {
   display: none;
 }
+
+/* Make modal scrollable when content is tall */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto; /* <-- enable scroll */
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 10000;
+}
+
+/* Ensure modal content stays centered and scrollable */
+.modal-content {
+    max-height: 90vh; /* <-- prevent overflow */
+    overflow-y: auto; /* <-- scroll inside */
+    margin: 50px auto;
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 500px;
+}

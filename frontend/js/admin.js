@@ -770,11 +770,12 @@ async deleteFacility(facilityId) {
                     <span class="status-badge status-${listing.status}">${listing.status}</span>
                 </div>
                 <div class="row-actions">
-                    ${listing.status === 'active' ? `
+                    ${listing.status === 'pending' ? `
                         <button class="btn btn-success btn-sm" onclick="adminApp.approveListing(${listing.listing_id})">
                             <i class="fas fa-check"></i> Approve
                         </button>
                     ` : ''}
+
                     <button class="btn btn-danger btn-sm" onclick="adminApp.removeListing(${listing.listing_id})">
                         <i class="fas fa-trash"></i> Remove
                     </button>
@@ -791,7 +792,12 @@ async deleteFacility(facilityId) {
         try {
             await window.adminApi.approveMarketplaceListing(listingId);
             this.showNotification('Listing approved successfully!');
-            this.loadMarketplaceListings();
+            // Force show all listings so approved ones appear instantly
+            const filter = document.getElementById('listing-status-filter');
+            if (filter) filter.value = 'all';
+
+            await this.loadMarketplaceListings();
+
         } catch (error) {
             console.error('Error approving listing:', error);
             this.showNotification(error.message || 'Failed to approve listing', 'error');

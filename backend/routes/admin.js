@@ -42,77 +42,63 @@ router.get('/recycling-requests', async (req, res) => {
     }
 });
 
-router.put('/recycling-requests/:id/approve', verifyToken, adminOnly, async (req, res) => {
-  const requestId = req.params.id;
-  let conn;
-
-  try {
-    // get dedicated connection from pool
-    conn = await db.getConnection();
-
-    // start transaction
-    await conn.beginTransaction();
-
-    // select request and lock the row
-    const [rows] = await conn.execute(
-      `SELECT r.request_id, r.user_id, r.device_id, d.credits_value
-       FROM recycling_requests r
-       JOIN devices d ON r.device_id = d.device_id
-       WHERE r.request_id = ? AND r.status = 'pending' FOR UPDATE`,
-      [requestId]
-    );
-
-    if (!rows || rows.length === 0) {
-      await conn.rollback();
-      return res.status(404).json({ error: 'Request not found or already processed' });
-    }
-
-    const reqRow = rows[0];
-    const creditsToAdd = Number(reqRow.credits_value) || 0;
-    const userId = reqRow.user_id;
-
-    // update request status
-    await conn.execute(
-      `UPDATE recycling_requests
-       SET status = 'approved', processed_by = ?, processed_at = CURRENT_TIMESTAMP
-       WHERE request_id = ?`,
-      [req.user.user_id, requestId] // req.user is admin performing the action
-    );
-
-    // update user credits (safe if credits column is NULL)
-    await conn.execute(
-      `UPDATE users
-       SET credits = COALESCE(credits,0) + ?
-       WHERE user_id = ?`,
-      [creditsToAdd, userId]
-    );
-
-    // commit
-    await conn.commit();
-
-    // Optionally emit socket update if io is available
+router.put('/recycling-requests/:id/approve', async (req, res) => {
     try {
-      const io = req.app.get('io');
-      if (io) {
-        io.emit('recycling_request:approved', { request_id: requestId, user_id: userId, credits_awarded: creditsToAdd });
-      }
-    } catch (e) {
-      console.warn('Socket emit failed', e);
-    }
+        const requestId = req.params.id;
+        const adminId = req.user.user_id; // admin performing the action
 
-    return res.json({
-      success: true,
-      message: 'Request approved and credits awarded',
-      credits_awarded: creditsToAdd
-    });
-  } catch (err) {
-    console.error('Admin approve recycling request error:', err);
-    try { if (conn) await conn.rollback(); } catch (_) {}
-    return res.status(500).json({ error: 'Failed to approve request', message: err.message });
-  } finally {
-    try { if (conn) await conn.release(); } catch (e) {}
-  }
+        // 1) Get the pending request + its device credits
+        const [rows] = await db.execute(
+            `SELECT r.request_id, r.user_id, r.device_id, d.credits_value
+             FROM recycling_requests r
+             JOIN devices d ON r.device_id = d.device_id
+             WHERE r.request_id = ? AND r.status = 'pending'`,
+            [requestId]
+        );
+
+        if (!rows || rows.length === 0) {
+            return res.status(404).json({
+                error: 'Request not found or already processed'
+            });
+        }
+
+        const reqRow = rows[0];
+        const creditsToAdd = Number(reqRow.credits_value) || 0;
+
+        // 2) Mark request as approved
+        await db.execute(
+            `UPDATE recycling_requests
+             SET status = 'approved',
+                 processed_by = ?,
+                 processed_at = NOW()
+             WHERE request_id = ?`,
+            [adminId, requestId]
+        );
+
+        // 3) Safely update user credits
+        await db.execute(
+            `UPDATE users
+             SET credits = COALESCE(credits, 0) + ?
+             WHERE user_id = ?`,
+            [creditsToAdd, reqRow.user_id]
+        );
+
+        return res.json({
+            success: true,
+            message: 'Request approved and credits awarded',
+            credits_awarded: creditsToAdd
+        });
+    } catch (error) {
+        console.error('Admin approve recycling request error:', error);
+        return res.status(500).json({
+            error: 'Failed to approve request',
+            message: error.message
+        });
+    }
 });
+
+
+
 
 
 router.put('/recycling-requests/:id/reject', async (req, res) => {
@@ -292,22 +278,34 @@ router.get('/users', async (req, res) => {
     try {
         const { search } = req.query;
 
-        let query = `
-            SELECT u.user_id, u.name, u.email, u.role, u.credits, u.created_at,
-                   COUNT(h.history_id) as devices_recycled
-            FROM users u
-            LEFT JOIN recycling_history h ON u.user_id = h.user_id
-        `;
-        let params = [];
+        let whereClause = '';
+        const params = [];
 
         if (search) {
-            query += ' WHERE u.name LIKE ? OR u.email LIKE ?';
+            whereClause = 'WHERE u.name LIKE ? OR u.email LIKE ?';
             params.push(`%${search}%`, `%${search}%`);
         }
 
-        query += ' GROUP BY u.user_id ORDER BY u.created_at DESC';
-
-        const [users] = await db.execute(query, params);
+        const [users] = await db.execute(`
+            SELECT 
+                u.user_id,
+                u.name,
+                u.email,
+                u.role,
+                u.credits,
+                u.created_at,
+                COALESCE(
+                    SUM(CASE WHEN r.status = 'approved' THEN 1 ELSE 0 END),
+                    0
+                ) AS devices_recycled
+            FROM users u
+            LEFT JOIN recycling_requests r 
+                ON u.user_id = r.user_id
+            ${whereClause}
+            GROUP BY 
+                u.user_id, u.name, u.email, u.role, u.credits, u.created_at
+            ORDER BY u.created_at DESC
+        `, params);
 
         res.json({
             success: true,
@@ -318,6 +316,7 @@ router.get('/users', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch users', message: error.message });
     }
 });
+
 
 // Admin Marketplace Management
 router.get('/marketplace', async (req, res) => {

@@ -12,7 +12,7 @@ router.get('/', async (req, res) => {
         let query = `
             SELECT l.listing_id, l.device_name, l.condition_type, l.price, 
                    l.description, l.image_url, l.status, l.created_at,
-                   u.name as seller_name, u.user_id as seller_id
+                   u.name as seller_name, u.email as seller_email
             FROM marketplace_listings l
             JOIN users u ON l.user_id = u.user_id
             WHERE l.status = 'active'
@@ -93,8 +93,8 @@ router.post('/', verifyToken, async (req, res) => {
         }
 
         const [result] = await db.execute(`
-            INSERT INTO marketplace_listings (user_id, device_name, condition_type, price, description, image_url)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO marketplace_listings (user_id, device_name, condition_type, price, description, image_url,status)
+            VALUES (?, ?, ?, ?, ?, ?,'pending')
         `, [user_id, device_name, condition_type, price, description, image_url]);
 
         res.status(201).json({
